@@ -1,0 +1,150 @@
+erDiagram
+    %% ============================================
+    %% RELACIONES PRINCIPALES
+    %% ============================================
+    
+    AUTH_USER ||--o{ USERS_WISHLIST : "1:N - tiene lista de deseos"
+    AUTH_USER ||--o{ STORE_REVIEW : "1:N - escribe reviews"
+    AUTH_USER ||--o{ ORDERS_ORDER : "1:N - realiza órdenes"
+    
+    STORE_CATEGORY ||--o{ STORE_PRODUCT : "1:N - contiene productos"
+    
+    STORE_PRODUCT ||--o{ USERS_WISHLIST : "1:N - aparece en wishlists"
+    STORE_PRODUCT ||--o{ STORE_REVIEW : "1:N - recibe reviews"
+    STORE_PRODUCT ||--o{ ORDERS_ORDERITEM : "1:N - referenciado en items"
+    
+    ORDERS_ORDER ||--|{ ORDERS_ORDERITEM : "1:N - contiene items"
+    ORDERS_ORDER }o--|| ORDERS_COUPON : "N:1 - usa cupón (opcional)"
+    
+    DJANGO_SESSION ||--o| CART_SESSION_DATA : "1:1 - almacena carrito"
+    
+    %% ============================================
+    %% TABLA: AUTH_USER (Django Authentication)
+    %% ============================================
+    AUTH_USER {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        varchar_150 username UK "UNIQUE, NOT NULL, INDEX"
+        varchar_254 email "NOT NULL"
+        varchar_128 password "NOT NULL, Hashed (PBKDF2)"
+        varchar_150 first_name "NULL"
+        varchar_150 last_name "NULL"
+        boolean is_staff "DEFAULT FALSE, Admin access"
+        boolean is_active "DEFAULT TRUE"
+        boolean is_superuser "DEFAULT FALSE"
+        datetime date_joined "DEFAULT CURRENT_TIMESTAMP"
+        datetime last_login "NULL, ON UPDATE"
+    }
+    
+    %% ============================================
+    %% TABLA: STORE_CATEGORY
+    %% ============================================
+    STORE_CATEGORY {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        varchar_200 name "NOT NULL, INDEX, Nombre de categoría"
+        varchar_200 slug UK "UNIQUE, NOT NULL, URL-friendly"
+    }
+    
+    %% ============================================
+    %% TABLA: STORE_PRODUCT
+    %% ============================================
+    STORE_PRODUCT {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        int category_id FK "NOT NULL, FOREIGN KEY → store_category(id)"
+        varchar_200 name "NOT NULL, INDEX, Nombre del producto"
+        varchar_200 slug "NOT NULL, INDEX, URL-friendly"
+        varchar_100 image "NULL, Path: products/Y/m/d/filename"
+        text description "NULL, Descripción del producto"
+        decimal_10_2 price "NOT NULL, CHECK price >= 0"
+        boolean available "DEFAULT TRUE"
+        float rating "DEFAULT 0.0, Promedio calculado"
+        datetime created "DEFAULT CURRENT_TIMESTAMP"
+        datetime updated "ON UPDATE CURRENT_TIMESTAMP"
+    }
+    
+    %% ============================================
+    %% ÍNDICE COMPUESTO EN STORE_PRODUCT
+    %% ============================================
+    
+    %% ============================================
+    %% TABLA: STORE_REVIEW
+    %% ============================================
+    STORE_REVIEW {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        int product_id FK "NOT NULL, FOREIGN KEY → store_product(id)"
+        int user_id FK "NOT NULL, FOREIGN KEY → auth_user(id)"
+        int rating "NOT NULL, CHECK rating BETWEEN 1 AND 5"
+        text comment "NOT NULL"
+        datetime created "DEFAULT CURRENT_TIMESTAMP"
+    }
+    
+    %% ============================================
+    %% TABLA: USERS_WISHLIST
+    %% ============================================
+    USERS_WISHLIST {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        int user_id FK "NOT NULL, FOREIGN KEY → auth_user(id)"
+        int product_id FK "NOT NULL, FOREIGN KEY → store_product(id)"
+        datetime added_at "DEFAULT CURRENT_TIMESTAMP"
+    }
+    
+    %% ============================================
+    %% TABLA: ORDERS_COUPON
+    %% ============================================
+    ORDERS_COUPON {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        varchar_50 code UK "UNIQUE, NOT NULL, Código del cupón"
+        datetime valid_from "NOT NULL, Fecha inicio validez"
+        datetime valid_to "NOT NULL, Fecha fin validez"
+        int discount "NOT NULL, CHECK 0 <= discount <= 100, Porcentaje"
+        boolean active "NOT NULL, DEFAULT TRUE"
+    }
+    
+    %% ============================================
+    %% TABLA: ORDERS_ORDER
+    %% ============================================
+    ORDERS_ORDER {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        int user_id FK "NULL, FOREIGN KEY → auth_user(id)"
+        varchar_50 first_name "NOT NULL"
+        varchar_50 last_name "NOT NULL"
+        varchar_254 email "NOT NULL"
+        varchar_250 address "NOT NULL, Dirección de envío"
+        varchar_20 postal_code "NOT NULL"
+        varchar_100 city "NOT NULL"
+        datetime created "DEFAULT CURRENT_TIMESTAMP, INDEX"
+        datetime updated "ON UPDATE CURRENT_TIMESTAMP"
+        boolean paid "DEFAULT FALSE, Estado de pago"
+        int coupon_id FK "NULL, FOREIGN KEY → orders_coupon(id)"
+        int discount "DEFAULT 0, CHECK 0 <= discount <= 100"
+    }
+    
+    %% ============================================
+    %% TABLA: ORDERS_ORDERITEM
+    %% ============================================
+    ORDERS_ORDERITEM {
+        int id PK "PRIMARY KEY, AUTO_INCREMENT"
+        int order_id FK "NOT NULL, FOREIGN KEY → orders_order(id)"
+        int product_id FK "NOT NULL, FOREIGN KEY → store_product(id)"
+        decimal_10_2 price "NOT NULL, Precio al momento de compra"
+        int quantity "DEFAULT 1, CHECK quantity > 0"
+    }
+    
+    %% ============================================
+    %% TABLA: DJANGO_SESSION
+    %% ============================================
+    DJANGO_SESSION {
+        varchar_40 session_key PK "PRIMARY KEY, Identificador único"
+        text session_data "NOT NULL, Datos serializados (JSON/pickle)"
+        datetime expire_date "NOT NULL, INDEX, Fecha de expiración"
+    }
+    
+    %% ============================================
+    %% ESTRUCTURA DE DATOS: CART_SESSION_DATA
+    %% (Almacenado en django_session.session_data)
+    %% ============================================
+    CART_SESSION_DATA {
+        string cart_session_id "Key: 'cart' en session"
+        json cart_items "Dict: {product_id: {quantity, price}}"
+        int coupon_id "Key: 'coupon_id' en session (opcional)"
+        int order_id "Key: 'order_id' en session (temporal)"
+    }

@@ -1,0 +1,62 @@
+sequenceDiagram
+    participant U as Usuario
+    participant T as Template
+    participant V as ViewAdd
+    participant W as Wishlist
+    participant P as Product
+    participant VL as ViewList
+    participant DB as Database
+    
+    U->>T: Ver detalle producto
+    T-->>U: Mostrar botón Wishlist
+    
+    U->>T: Click Agregar a Wishlist
+    T->>V: GET /wishlist/add/{id}/
+    activate V
+    
+    V->>V: Verificar @login_required
+    
+    alt Usuario no autenticado
+        V-->>T: redirect login
+        T-->>U: Redirigir a login
+    else Usuario autenticado
+        V->>P: get_object_or_404(id)
+        P->>DB: SELECT * FROM product WHERE id=?
+        
+        alt Producto no existe
+            DB-->>P: None
+            P-->>V: Http404
+            V-->>U: Error 404
+        else Producto existe
+            DB-->>P: product_data
+            P-->>V: product
+            
+            V->>W: get_or_create(user, product)
+            activate W
+            W->>DB: SELECT * FROM wishlist WHERE user_id=? AND product_id=?
+            
+            alt Ya existe en wishlist
+                DB-->>W: existing_item
+                W-->>V: (item, created=False)
+                Note over V: No duplicar por unique_together
+            else No existe
+                W->>DB: INSERT INTO wishlist
+                DB-->>W: wishlist_id
+                W-->>V: (item, created=True)
+            end
+            deactivate W
+            
+            V-->>T: redirect wishlist_view
+            deactivate V
+            
+            T->>VL: GET /users/wishlist/
+            activate VL
+            VL->>W: filter(user=request.user)
+            W->>DB: SELECT * FROM wishlist WHERE user_id=?
+            DB-->>W: wishlist_items
+            W-->>VL: items
+            VL-->>T: render wishlist.html
+            deactivate VL
+            T-->>U: Mostrar wishlist actualizada
+        end
+    end
