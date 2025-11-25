@@ -1,0 +1,72 @@
+sequenceDiagram
+    participant U as Usuario
+    participant T as Template
+    participant V as View
+    participant F as ReviewForm
+    participant R as Review
+    participant P as Product
+    participant DB as Database
+    
+    U->>T: Ver detalle producto
+    T->>V: GET /store/{id}/{slug}/
+    activate V
+    
+    V->>P: get_object_or_404(id, slug)
+    P->>DB: SELECT * FROM product
+    DB-->>P: product_data
+    P-->>V: product
+    
+    V->>R: product.reviews.all()
+    R->>DB: SELECT * FROM review WHERE product_id=?
+    DB-->>R: reviews_list
+    R-->>V: reviews
+    
+    V->>F: ReviewForm()
+    F-->>V: empty_form
+    
+    V-->>T: render(detail.html)
+    deactivate V
+    T-->>U: Mostrar producto y reviews
+    
+    U->>T: Escribir review (rating + comment)
+    T->>V: POST review data
+    activate V
+    
+    V->>V: Verificar user.is_authenticated
+    
+    alt Usuario no autenticado
+        V-->>T: redirect login
+        T-->>U: Redirigir a login
+    else Usuario autenticado
+        V->>F: ReviewForm(POST)
+        F->>F: is_valid()
+        F-->>V: cleaned_data
+        
+        V->>R: form.save(commit=False)
+        R-->>V: review_instance
+        
+        V->>R: review.product = product
+        V->>R: review.user = request.user
+        
+        V->>R: review.save()
+        activate R
+        R->>DB: INSERT INTO review
+        DB-->>R: review_id
+        
+        R->>R: trigger save signal
+        R->>P: product.update_rating()
+        activate P
+        P->>DB: SELECT AVG(rating) FROM review
+        DB-->>P: avg_rating
+        P->>DB: UPDATE product SET rating=?
+        DB-->>P: updated
+        P-->>R: rating_updated
+        deactivate P
+        
+        R-->>V: review_saved
+        deactivate R
+        
+        V-->>T: redirect product_detail
+        deactivate V
+        T-->>U: Mostrar review agregada
+    end

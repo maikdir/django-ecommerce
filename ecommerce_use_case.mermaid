@@ -1,0 +1,133 @@
+graph TB
+    subgraph Sistema["SISTEMA ECOMMERCE DJANGO"]
+        subgraph Autenticacion["Gestión de Usuarios"]
+            UC1["Registrarse"]
+            UC2["Iniciar Sesión"]
+            UC3["Cerrar Sesión"]
+            UC4["Ver Perfil"]
+        end
+        
+        subgraph Catalogo["Gestión de Catálogo"]
+            UC5["Listar Productos"]
+            UC6["Buscar Productos"]
+            UC7["Filtrar por Categoría"]
+            UC8["Ver Detalle de Producto"]
+            UC9["Ver Bestsellers"]
+        end
+        
+        subgraph Reviews["Sistema de Reviews"]
+            UC10["Escribir Review"]
+            UC11["Ver Reviews"]
+            UC12["Calificar Producto"]
+        end
+        
+        subgraph Wishlist["Lista de Deseos"]
+            UC13["Agregar a Wishlist"]
+            UC14["Ver Wishlist"]
+            UC15["Eliminar de Wishlist"]
+        end
+        
+        subgraph Carrito["Gestión de Carrito"]
+            UC16["Agregar al Carrito"]
+            UC17["Ver Carrito"]
+            UC18["Modificar Cantidad"]
+            UC19["Eliminar del Carrito"]
+            UC20["Aplicar Cupón de Descuento"]
+        end
+        
+        subgraph Compras["Proceso de Compra"]
+            UC21["Crear Orden"]
+            UC22["Ingresar Datos de Envío"]
+            UC23["Procesar Pago"]
+            UC24["Confirmar Compra"]
+            UC25["Ver Historial de Órdenes"]
+        end
+        
+        subgraph Administracion["Administración"]
+            UC26["Gestionar Productos"]
+            UC27["Gestionar Categorías"]
+            UC28["Gestionar Cupones"]
+            UC29["Ver Dashboard Admin"]
+            UC30["Generar PDF de Orden"]
+            UC31["Gestionar Reviews"]
+        end
+    end
+    
+    Visitante["👤 USUARIO VISITANTE<br/>(No Autenticado)"]
+    Registrado["👤 USUARIO REGISTRADO<br/>(Cliente Autenticado)"]
+    Admin["👤 ADMINISTRADOR<br/>(Staff Member)"]
+    
+    %% Usuario Visitante
+    Visitante --> UC1
+    Visitante --> UC2
+    Visitante --> UC5
+    Visitante --> UC6
+    Visitante --> UC7
+    Visitante --> UC8
+    Visitante --> UC9
+    Visitante --> UC11
+    
+    %% Usuario Registrado
+    Registrado --> UC3
+    Registrado --> UC4
+    Registrado --> UC5
+    Registrado --> UC6
+    Registrado --> UC7
+    Registrado --> UC8
+    Registrado --> UC9
+    Registrado --> UC10
+    Registrado --> UC11
+    Registrado --> UC12
+    Registrado --> UC13
+    Registrado --> UC14
+    Registrado --> UC15
+    Registrado --> UC16
+    Registrado --> UC17
+    Registrado --> UC18
+    Registrado --> UC19
+    Registrado --> UC20
+    Registrado --> UC21
+    Registrado --> UC22
+    Registrado --> UC23
+    Registrado --> UC24
+    Registrado --> UC25
+    
+    %% Administrador
+    Admin --> UC26
+    Admin --> UC27
+    Admin --> UC28
+    Admin --> UC29
+    Admin --> UC30
+    Admin --> UC31
+    
+    %% Relaciones Include
+    UC1 -.->|include| UC2
+    UC10 -.->|include| UC12
+    UC17 -.->|include| UC18
+    UC17 -.->|include| UC19
+    UC17 -.->|include| UC20
+    UC21 -.->|include| UC22
+    UC21 -.->|include| UC23
+    UC23 -.->|include| UC24
+    UC4 -.->|include| UC25
+    UC29 -.->|include| UC26
+    UC29 -.->|include| UC27
+    
+    %% Relaciones Extend
+    UC10 -.->|extend| UC8
+    UC13 -.->|extend| UC8
+    UC16 -.->|extend| UC8
+    UC21 -.->|extend| UC17
+    UC6 -.->|extend| UC5
+    UC7 -.->|extend| UC5
+    
+    style Visitante fill:#e1f5ff,stroke:#0066cc,stroke-width:3px
+    style Registrado fill:#fff4e1,stroke:#ff9900,stroke-width:3px
+    style Admin fill:#ffe1e1,stroke:#cc0000,stroke-width:3px
+    style Autenticacion fill:#e8f4f8
+    style Catalogo fill:#f0f8e8
+    style Reviews fill:#f8f0e8
+    style Wishlist fill:#f8e8f0
+    style Carrito fill:#e8f0f8
+    style Compras fill:#f0e8f8
+    style Administracion fill:#f8e8e8

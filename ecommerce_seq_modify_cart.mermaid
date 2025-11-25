@@ -1,0 +1,45 @@
+sequenceDiagram
+    participant U as Usuario
+    participant T as Template
+    participant V as ViewAdd
+    participant F as CartForm
+    participant C as Cart
+    participant S as Session
+    
+    U->>T: Ver carrito
+    T->>C: Cart(request)
+    C->>S: get cart
+    S-->>C: cart_data
+    C-->>T: cart items
+    T-->>U: Mostrar carrito
+    
+    U->>T: Cambiar cantidad (1 a 3)
+    T->>V: POST /cart/add/{id}/
+    activate V
+    
+    V->>F: CartAddProductForm(POST)
+    F->>F: validate quantity
+    F-->>V: cleaned_data {quantity:3, override:True}
+    
+    V->>C: Cart(request)
+    C->>S: get cart
+    S-->>C: cart_data
+    C-->>V: cart
+    
+    V->>C: add(product, 3, override=True)
+    activate C
+    C->>C: cart[id]['quantity'] = 3
+    C->>S: session.modified = True
+    S-->>C: saved
+    C-->>V: updated
+    deactivate C
+    
+    V-->>T: redirect cart_detail
+    deactivate V
+    
+    T->>C: Cart(request)
+    C->>S: get cart
+    S-->>C: updated_cart
+    C->>C: recalculate totals
+    C-->>T: cart with new totals
+    T-->>U: Mostrar cantidad actualizada

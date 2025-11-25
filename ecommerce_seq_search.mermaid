@@ -1,0 +1,50 @@
+sequenceDiagram
+    participant U as Usuario
+    participant T as Template
+    participant V as View
+    participant C as Category
+    participant P as Product
+    participant DB as Database
+    
+    Note over U,DB: ESCENARIO 1: Listar Todos
+    
+    U->>T: Acceder /store/
+    T->>V: GET request
+    activate V
+    
+    V->>C: Category.objects.all()
+    C->>DB: SELECT * FROM category
+    DB-->>C: categories
+    C-->>V: all_categories
+    
+    V->>P: Product.objects.filter(available=True)
+    P->>DB: SELECT * FROM product WHERE available=True
+    DB-->>P: products
+    P-->>V: all_products
+    
+    V->>P: products[:5]
+    P-->>V: bestsellers
+    
+    V-->>T: render(list.html)
+    deactivate V
+    T-->>U: Mostrar catálogo completo
+    
+    Note over U,DB: ESCENARIO 2: Filtrar por Categoría
+    
+    U->>T: Click categoría Electrónica
+    T->>V: GET /store/electronica/
+    activate V
+    
+    V->>C: get_object_or_404(slug=electronica)
+    C->>DB: SELECT * FROM category WHERE slug=?
+    DB-->>C: category_data
+    C-->>V: category
+    
+    V->>P: filter(available=True, category=category)
+    P->>DB: SELECT * FROM product WHERE category_id=? AND available=True
+    DB-->>P: filtered_products
+    P-->>V: products
+    
+    V-->>T: render(list.html)
+    deactivate V
+    T-->>U: Mostrar solo Electrónica
