@@ -1,0 +1,65 @@
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}
+    {{ product.name }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-sm-6">
+            <img src="https://via.placeholder.com/400x600?text={{product.name}}" class="img-fluid rounded">
+        </div>
+        <div class="col-sm-6">
+            <h1>{{ product.name }}</h1>
+            <h6><a href="{{ product.category.get_absolute_url }}">{{ product.category }}</a></h6>
+            <p class="text-muted">
+                Rating: {{ product.rating|floatformat:1 }}/5.0
+            </p>
+            <p class="h4">${{ product.price }}</p>
+            <p>{{ product.description|linebreaks }}</p>
+            <form action="{% url 'cart:cart_add' product.id %}" method="post" class="d-inline">
+                {{ cart_product_form }}
+                {% csrf_token %}
+                <input type="submit" value="Add to cart" class="btn btn-primary">
+            </form>
+            {% if request.user.is_authenticated %}
+                {% if in_wishlist %}
+                    <a href="{% url 'users:remove_from_wishlist' product.id %}" class="btn btn-danger">Remove from Wishlist</a>
+                {% else %}
+                    <a href="{% url 'users:add_to_wishlist' product.id %}" class="btn btn-outline-danger">Add to Wishlist</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-8">
+            <h2>Reviews</h2>
+            {% for review in reviews %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ review.user.username }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Rating: {{ review.rating }}/5</h6>
+                        <p class="card-text">{{ review.comment }}</p>
+                        <small class="text-muted">{{ review.created|date:"F j, Y" }}</small>
+                    </div>
+                </div>
+            {% empty %}
+                <p>There are no reviews for this product yet.</p>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h2>Write a review</h2>
+            {% if request.user.is_authenticated %}
+                <form method="post">
+                    {% csrf_token %}
+                    {{ review_form.as_p }}
+                    <button type="submit" class="btn btn-success">Submit Review</button>
+                </form>
+            {% else %}
+                <p>You must be logged in to write a review. <a href="{% url 'users:login' %}?next={{ request.path }}">Login here</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

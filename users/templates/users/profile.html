@@ -1,0 +1,43 @@
+{% extends "store/base.html" %}
+
+{% block title %}
+    My Profile
+{% endblock %}
+
+{% block content %}
+    <h1>My Profile</h1>
+    <h2>My Orders</h2>
+    {% for order in orders %}
+        <div class="card mb-3">
+            <div class="card-header">
+                Order #{{ order.id }}
+            </div>
+            <div class="card-body">
+                <p><strong>Date:</strong> {{ order.created }}</p>
+                <p><strong>Total:</strong> ${{ order.get_total_cost }}</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>${{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ item.get_cost }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% empty %}
+        <p>You have no orders yet.</p>
+    {% endfor %}
+{% endblock %}

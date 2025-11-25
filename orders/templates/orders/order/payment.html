@@ -1,0 +1,51 @@
+{% extends "store/base.html" %}
+
+{% block title %}
+    Pay for your order
+{% endblock %}
+
+{% block content %}
+    <h1>Order Summary</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>${{ item.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.get_cost }}</td>
+                </tr>
+            {% endfor %}
+            <tr class="table-info">
+                <td colspan="3">Total</td>
+                <td>${{ order.get_total_cost }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form method="post">
+        <h2>Pay with Card</h2>
+        <div class="mb-3">
+            <label for="card-number" class="form-label">Card Number</label>
+            <input type="text" id="card-number" class="form-control" value="1234 5678 9012 3456" disabled>
+        </div>
+        <div class="mb-3">
+            <label for="card-expiry" class="form-label">Expiry Date</label>
+            <input type="text" id="card-expiry" class="form-control" value="12/28" disabled>
+        </div>
+        <div class="mb-3">
+            <label for="card-cvc" class="form-label">CVC</label>
+            <input type="text" id="card-cvc" class="form-control" value="123" disabled>
+        </div>
+        <p><input type="submit" value="Pay now" class="btn btn-primary"></p>
+        {% csrf_token %}
+    </form>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}
+    Your shopping cart
+{% endblock %}
+
+{% block content %}
+    <h1>Your shopping cart</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Image</th>
+                <th scope="col">Product</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Remove</th>
+                <th scope="col">Unit price</th>
+                <th scope="col">Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart %}
+                {% with product=item.product %}
+                    <tr>
+                        <td>
+                            <a href="{{ product.get_absolute_url }}">
+                                <img src="https://via.placeholder.com/50x50?text={{product.name}}" class="img-thumbnail" style="max-width: 50px;">
+                            </a>
+                        </td>
+                        <td>{{ product.name }}</td>
+                        <td>
+                            <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                                {{ item.update_quantity_form.quantity }}
+                                {{ item.update_quantity_form.override }}
+                                <input type="submit" value="Update" class="btn btn-sm btn-primary">
+                                {% csrf_token %}
+                            </form>
+                        </td>
+                        <td>
+                            <form action="{% url 'cart:cart_remove' product.id %}" method="post">
+                                <input type="submit" value="Remove" class="btn btn-sm btn-danger">
+                                {% csrf_token %}
+                            </form>
+                        </td>
+                        <td>${{ item.price }}</td>
+                        <td>${{ item.total_price }}</td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+            <tr class="table-light">
+                <td colspan="5">Subtotal</td>
+                <td colspan="1">${{ cart.get_total_price }}</td>
+            </tr>
+            {% if cart.coupon %}
+                <tr class="table-light">
+                    <td colspan="5">
+                        "{{ cart.coupon.code }}" coupon
+                        ({{ cart.coupon.discount }}% off)
+                    </td>
+                    <td colspan="1">
+                        - ${{ cart.get_discount|floatformat:2 }}
+                    </td>
+                </tr>
+            {% endif %}
+            <tr class="table-info">
+                <td colspan="5">Total</td>
+                <td colspan="1">${{ cart.get_total_price_after_discount|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <form action="{% url 'cart:coupon_apply' %}" method="post">
+                {% csrf_token %}
+                {{ coupon_apply_form }}
+                <input type="submit" value="Apply" class="btn btn-secondary">
+            </form>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'store:product_list' %}" class="btn btn-secondary">Continue shopping</a>
+            <a href="{% url 'orders:order_create' %}" class="btn btn-primary">Checkout</a>
+        </div>
+    </div>
+{% endblock %}

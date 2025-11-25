@@ -1,0 +1,77 @@
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if category %}{{ category.name }}{% else %}Products{% endif %}
+{% endblock %}
+
+{% block hero %}
+    {% if not category %}
+    <div class="hero">
+        <div class="hero-text">
+            <h1>Find Your Vibe</h1>
+            <p>The best clothes for the best people</p>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        {% if not category %}
+            <div class="my-4">
+                <h2 class="text-center">Bestsellers</h2>
+                <p class="text-center text-muted">Our most popular products</p>
+                <div id="bestsellersCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for product in bestsellers %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <a href="{{ product.get_absolute_url }}">
+                                    <img src="https://via.placeholder.com/800x400/28a745/FFFFFF?text={{product.name}}" class="d-block w-100 rounded" alt="{{ product.name }}">
+                                </a>
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5 class="bg-dark bg-opacity-50 rounded p-2">{{ product.name }}</h5>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#bestsellersCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#bestsellersCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="my-4">
+            <h2 class="text-center">{% if category %}{{ category.name }}{% else %}All Products{% endif %}</h2>
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                {% for product in products %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <a href="{{ product.get_absolute_url }}">
+                                <img src="https://via.placeholder.com/300x400/28a745/FFFFFF?text={{product.name}}" class="card-img-top" alt="{{product.name}}">
+                            </a>
+                            <div class="card-body text-center">
+                                <h5 class="card-title"><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h5>
+                                <p class="card-text text-muted">${{ product.price }}</p>
+                                <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="submit" value="Add to Cart" class="btn btn-primary btn-sm">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

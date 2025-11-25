@@ -1,0 +1,40 @@
+{% extends "store/base.html" %}
+
+{% block title %}
+    Checkout
+{% endblock %}
+
+{% block content %}
+    <h1>Checkout</h1>
+
+    <div class="order-info">
+        <h3>Your order</h3>
+        <ul>
+            {% for item in cart %}
+                <li>
+                    {{ item.quantity }}x {{ item.product.name }}
+                    <span>${{ item.total_price }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+        <p>Total: ${{ cart.get_total_price }}</p>
+    </div>
+
+    <form method="post" class="order-form">
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                Please correct the errors below.
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ field }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        {{ form.as_p }}
+        <p><input type="submit" value="Place order" class="btn btn-primary"></p>
+        {% csrf_token %}
+    </form>
+{% endblock %}
